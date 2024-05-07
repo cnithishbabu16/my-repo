@@ -1,9 +1,12 @@
 package org.revhire.controller;
 
+import org.revhire.dao.JobSeekerDAO;
 import org.revhire.model.Experience;
 import org.revhire.model.*;
 import org.revhire.model.JobSeeker;
 import org.revhire.service.JobSeekerService;
+import org.revhire.service.JobService;
+import org.revhire.util.CredentialsValidator;
 
 import java.sql.Date;
 import java.sql.SQLException;
@@ -11,18 +14,12 @@ import java.util.List;
 import java.util.Scanner;
 
 public class JobSeekerController {
-    //
-//    1.	Register myself and create an account.
-//            2.	Login to my account.
-//            3.	Create and manage standard textual resume.
-//            4.	Search for jobs using filters like job role, location, experience in years, and company name.
-//            5.	Apply for interesting jobs (No Limit).
-//            6.	View Applications and their status.
-//   7.	Withdraw the application (from the interested jobs) in case of a change of interest.
+
     private JobSeekerService jobSeekerService = new JobSeekerService();
+    private JobService jobService = new JobService();
     private Scanner scanner = new Scanner(System.in);
 
-    // Register a new job seeker and prompt them to add a resume
+
 
 
     public void showMenu(int loggedInJobSeekerId) throws SQLException {
@@ -51,12 +48,34 @@ public class JobSeekerController {
                 break;
 
             case 5:
+                viewApplicationStatus(loggedInJobSeekerId);
+                break;
             case 6:
+                withdrawApplication(loggedInJobSeekerId);
+                break;
             case 7:
+                forgotPassword();
+                break;
             case 8:
-                return;
+                System.out.println("Exit");
+                scanner.close();
+                System.exit(0);
+                break;
+
         }
     }
+
+
+
+    private void withdrawApplication(int jobSeekerId) {
+        System.out.println("Enter the job id : ");
+        int id=scanner.nextInt();
+        JobAppication jobAppication=new JobAppication();
+        jobAppication.setJobSeekerId(jobSeekerId);
+        jobAppication.setJobId(id);
+        jobSeekerService.withdrawApplication(jobAppication);
+    }
+
 
 
 
@@ -64,12 +83,26 @@ public class JobSeekerController {
         System.out.println("Job Seeker Registration:");
         System.out.print("Enter username: ");
         String username = scanner.nextLine();
+        while(!CredentialsValidator.isValidUsername(username)){
+            System.out.println("eneter username again");
+            username=scanner.nextLine();
+        }
 
         System.out.print("Enter password: ");
         String password = scanner.nextLine();
+        while (!CredentialsValidator.isValidPassword(password)){
+            System.out.println("invalid password enter again");
+            password= scanner.nextLine();
+        }
 
         System.out.print("Enter email: ");
         String email = scanner.nextLine();
+       // String email = scanner.nextLine();
+        while (!CredentialsValidator.isValidEmail(email)){
+            System.out.println("enter valid email : ");
+            email=scanner.nextLine();
+        }
+
 
         System.out.print("Enter first name: ");
         String firstName = scanner.nextLine();
@@ -88,14 +121,14 @@ public class JobSeekerController {
         try {
             jobSeekerService.registerJobSeeker(jobSeeker);
             System.out.println("Job seeker registered successfully.");
-            // Prompt the job seeker to add a resume
-            addResume(jobSeeker.getId());
+
+            //addResume(jobSeeker.getId());
         } catch (SQLException e) {
             System.out.println("Error registering job seeker: " + e.getMessage());
         }
     }
 
-    // Prompt the job seeker to add a resume
+
     public void addResume(int jobSeekerId) {
         System.out.println("Please add your resume:");
         System.out.print("Enter resume (as plain text): ");
@@ -109,18 +142,31 @@ public class JobSeekerController {
         }
     }
 
-    public void applyJobs(int jobId) {
-        Job jobs =  new Job();
+//    public void applyJobs(int jobId) {
+//        Job jobs =  new Job();
+//
+//
+//        try {
+//
+//            System.out.println("view all the jobs");
+//             System.out.println(jobSeekerService.applyJobs(jobId));
+//        }
+//        catch (SQLException e){
+//            System.out.println("no jobs available"+e.getMessage());
+//        }
+//    }
+public void applyJobs(int jobSeekerId){
+    System.out.println("Enter the job id : ");
+    int jobId=scanner.nextInt();
 
-
-        try {
-
-            System.out.println("view all the jobs");
-             System.out.println(jobSeekerService.applyJobs(jobId));
-        }
-        catch (SQLException e){
-            System.out.println("no jobs available"+e.getMessage());
-        }
+    JobAppication jobAppication=new JobAppication();
+    jobAppication.setJobId(jobId);
+    jobAppication.setJobSeekerId(jobSeekerId);
+    jobSeekerService.applyJob(jobAppication);
+}
+    public void   viewApplicationStatus(int  jobSeekerId){
+        List<JobSeekerViewApplication> list = jobSeekerService.applicationsByJobSeekerId(jobSeekerId);
+        printJobApplications(list);
     }
 
 
@@ -176,7 +222,24 @@ public class JobSeekerController {
                 }
 
             case 2:
-
+                System.out.println("1.role and experience");
+                System.out.println("2.company");
+                System.out.println("3. search by role experience location company : ");
+                int jobOption=scanner.nextInt();
+                switch (jobOption) {
+                    case 1:
+                        List<JobPost> jobs1 = jobService.searchByRoleAndExperience();
+                        printJoPost(jobs1);
+                        break;
+                    case 2:
+                        List<JobPost> jobs2 = jobService.searchByCompanyOrLocation();
+                        printJoPost(jobs2);
+                        break;
+                    case 3:
+                        List<JobPost> jobs3 = jobService.getAllJobPost();
+                        printJoPost(jobs3);
+                        break;
+                }
         }
     }
 
@@ -186,17 +249,7 @@ public class JobSeekerController {
 
     public void addExperience(int userId) {
         Scanner sc = new Scanner(System.in);
-//        CREATE TABLE experience (
-//                id INT PRIMARY KEY AUTO_INCREMENT,
-//                job_seeker_id INT NOT NULL,
-//                job_title VARCHAR(255) NOT NULL,
-//                company_name VARCHAR(255) NOT NULL,
-//                location VARCHAR(255) NOT NULL,
-//                start_date DATE NOT NULL,
-//                end_date DATE DEFAULT NULL,
-//                responsibilities TEXT,
-//                FOREIGN KEY (job_seeker_id) REFERENCES job_seeker(id)
-//        );
+
 
         System.out.print("Job Title: ");
         String jobTitle = scanner.nextLine();
@@ -213,7 +266,7 @@ public class JobSeekerController {
         System.out.print("End Date (YYYY-MM-DD, or leave blank for NULL): ");
         String endDate = scanner.nextLine();
         if (endDate.isEmpty()) {
-            endDate = null; // Insert null for end_date if the user leaves it blank
+            endDate = null;
         }
 
         System.out.print("Responsibilities: ");
@@ -227,6 +280,55 @@ public class JobSeekerController {
     }
     public  void jobPosts(){
 
+    }
+    public void printJobApplications(List<JobSeekerViewApplication> lba){
+        JobSeekerDAO jsd = new JobSeekerDAO();
+        int jobIdWidth = 8;
+        int applicationIdWidth = 15;
+        int companyNameWidth = 20;
+        int roleWidth = 20;
+        int locationWidth = 15;
+        int dateWidth = 12;
+        int experienceWidth = 10;
+        int statusWidth = 12;
+
+        System.out.printf(String.valueOf(jobIdWidth),applicationIdWidth , companyNameWidth , roleWidth , locationWidth ,dateWidth, experienceWidth , statusWidth + "s%n",
+                "Job ID", "Application ID", "Company Name", "Role", "Location", "Register Date", "Experience", "Status");
+
+        System.out.println(jobIdWidth + applicationIdWidth + companyNameWidth + roleWidth + locationWidth + dateWidth + experienceWidth + statusWidth + 7);
+
+        for (JobSeekerViewApplication app : lba) {
+            System.out.printf("%-" + jobIdWidth + "d | %-" + applicationIdWidth + "d | %-" + companyNameWidth + "s | %-" + roleWidth + "s | %-" + locationWidth + "s | %-" + dateWidth + "s | %-" + experienceWidth + "s | %-" + statusWidth + "s%n",
+                    app.getJobId(), app.getApplicationId(), app.getCompanyName(), app.getRole(), app.getLocation(), app.getRegisterDate().toString(), app.getExperience(), app.getApplicationStatus());
+        }
+    }
+    private void printJoPost(List<JobPost> jobPosts){
+        System.out.printf("%-5s | %-10s | %-20s | %-25s | %-25s | %-20s | %-40s | %-20s | %-10s | %-10s%n",
+                "ID", "Employer ID", "Company Name", "Email", "Address", "Title", "Job Details", "Location", "Salary", "Experience");
+        System.out.println("---------------------------------------------------------------------------------"
+                + "-----------------------------------------------------------------------------------------");
+        for (JobPost j : jobPosts) {
+            System.out.printf("%-5d | %-10d | %-20s | %-25s | %-25s | %-20s | %-40s | %-20s | $%-10f | %-10d%n",
+                    j.getId(),
+                    j.getEmployerId(),
+                    j.getCompany(),
+                    j.getEmail(),
+                    j.getAddress(),
+                    j.getTitle(),
+                    j.getDescription(),
+                    j.getLocation(),
+                    j.getSalary(),
+                    j.getExperience());
+        }
+    }
+    public void forgotPassword(){
+        System.out.println("Enter username : ");
+        String username=scanner.next();
+        System.out.println("Enter the email : ");
+        String email=scanner.next();
+        System.out.println("Enter the password");
+        String password=scanner.next();
+        jobSeekerService.forgotPassword(username,email,password);
     }
 
 

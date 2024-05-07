@@ -2,8 +2,11 @@ package org.revhire.controller;
 
 import org.revhire.model.Employer;
 import org.revhire.model.Job;
+import org.revhire.model.JobAppication;
 import org.revhire.service.EmployerService;
+import org.revhire.service.JobSeekerService;
 import org.revhire.service.JobService;
+import org.revhire.util.CredentialsValidator;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -11,7 +14,8 @@ import java.util.Scanner;
 
 public class EmployerController {
     private EmployerService employerService = new EmployerService();
-    JobService jobService = new JobService();
+    private JobSeekerService jobSeekerService = new JobSeekerService();
+    private JobService jobService = new JobService();
     private Scanner scanner = new Scanner(System.in);
 
 
@@ -23,12 +27,26 @@ public class EmployerController {
         String name= scanner.next();
         System.out.print("Enter username: ");
         String username = scanner.next();
+        while(!CredentialsValidator.isValidUsername(username)){
+            System.out.println("enter username again");
+            username=scanner.nextLine();
+        }
+
 
         System.out.print("Enter password: ");
         String password = scanner.next();
+        while (!CredentialsValidator.isValidPassword(password)){
+            System.out.println("invalid password enter again");
+            password= scanner.nextLine();
+        }
 
         System.out.print("Enter email: ");
         String email = scanner.next();
+       // String email = scanner.nextLine();
+        while (!CredentialsValidator.isValidEmail(email)){
+            System.out.println("enter valid email : ");
+            email=scanner.nextLine();
+        }
 
         System.out.print("Enter company name: ");
         String companyName = scanner.next();
@@ -60,11 +78,13 @@ public class EmployerController {
             System.out.println("1.View ");
             System.out.println("2.Add new job post");
 
-            System.out.println("3.Update new job post");
+            //System.out.println(".Update new job post");
 
-            System.out.println("4.Delete new job post");
+            System.out.println("3.Delete new job post");
 
-            System.out.println("5.view applications");
+            System.out.println("4.view applications");
+            System.out.println("5.review application and provide status");
+            System.out.println("6.Exit");
             System.out.print("Choose an option:");
             int choice =scanner.nextInt();
 
@@ -76,22 +96,34 @@ public class EmployerController {
                 case 2:
                     postJob(loggedInEmployerId);
                     break;
-                case 4:
-                    deletePost(1206);
+                case 3:
+                    deletePost(loggedInEmployerId);
 
                     break;
 
+                case 4:
+                    viewApplications(loggedInEmployerId);
+                    break;
+                case 5:
+                    updateStatus(loggedInEmployerId);
+                    break;
+                case 6:
+                    System.out.println("Exiting employer");
+                    scanner.close();
+                    System.exit(0);
+
+
+                    break;
 
 
             }
 
 
         }
-
-
-
-
     }
+
+
+
     public void postJob(int employerId){
         scanner.nextLine();
         System.out.print("Enter job title:");
@@ -112,19 +144,54 @@ public class EmployerController {
 
 
     }
-    public void deletePost(int jobId){
-        System.out.print("Enter job Id:");
-        scanner.nextInt();
-        Job job = new Job();
-        job.setId(jobId);
+    public  void deletePost(int employerId){
+        System.out.println("enter job id : ");
+        int  jobId=scanner.nextInt();
+        employerService.deletePost(employerId,jobId);
+    }
+    public void viewApplications(int employerId){
+        List<JobAppication> applications = jobService.getApplications(employerId);
 
-        employerService.deletePost(jobId);
+        for(JobAppication j:applications){
+            System.out.println(j);
+        }
+    }
+    public void updateStatus(int employerId){
+        System.out.println("Enter application id : ");
+        int applicationId=scanner.nextInt();
+//        System.out.println("enter job id : ");
+        String status="";
+        System.out.println("select  application status : ");
+        System.out.println("1.approve");
+        System.out.println("2.reject");
+        System.out.println("3.pending");
+        boolean b=true;
+        while(b) {
+            int choice=scanner.nextInt();
+            switch (choice) {
+                case 1:
+                    status = "accepted";
+                    b=false;
+                    break;
+                case 2:
+                    status = "reject";
+                    b=false;
+                    break;
+                case 3:
+                    status = "pending";
+                    b=false;
+                    break;
+                default:
+                    System.out.println("enter valid input");
+            }
+        }
+        employerService.updateStatus(employerId,applicationId,status);
 
 
     }
 
-    public void updateJobPost(){
 
-    }
+
+
 }
 

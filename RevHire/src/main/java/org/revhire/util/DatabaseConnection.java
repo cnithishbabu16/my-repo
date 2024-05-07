@@ -21,7 +21,7 @@ public class DatabaseConnection {
                     // Define the JDBC URL
                     String url = "jdbc:sqlserver://localhost;databaseName=Revhire;integratedSecurity=true;encrypt=true;trustServerCertificate=true;";
 
-                    // Establish the connection
+
                     connection = DriverManager.getConnection(url);
                 }
             }

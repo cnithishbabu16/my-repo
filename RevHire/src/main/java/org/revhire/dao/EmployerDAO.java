@@ -10,9 +10,7 @@ import java.sql.*;
 public class EmployerDAO {
 
 
-    //private int jobId;
 
-    // Register a new employer
     public void registerEmployer(Employer employer) throws SQLException {
         String query = "INSERT INTO employers (emp_name,username, password, email, company_name, contact_number, address, company_description, industry) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
@@ -30,7 +28,7 @@ public class EmployerDAO {
         }
     }
 
-    // Retrieve an employer by username
+
     public Employer getEmployerByUsername(String username) throws SQLException {
         String query = "SELECT * FROM employers WHERE username = ?";
         try (Connection connection = DatabaseConnection.getConnection();
@@ -53,7 +51,7 @@ public class EmployerDAO {
                 }
             }
         }
-        return null; // Employer not found
+        return null;
     }
 
     public EmployerDetails getById(int id) {
@@ -96,6 +94,7 @@ public class EmployerDAO {
 //            return null;
 //        }
     public void postJob(Job job)  {
+
         String sql = "INSERT INTO jobs (employer_id, title, description, location, salary, experience) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement statement = DatabaseConnection.getConnection().prepareStatement(sql)) {
@@ -109,6 +108,7 @@ public class EmployerDAO {
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
                 System.out.println("Job posted successfully.");
+
             } else {
                 System.out.println("Failed to post job.");
             }
@@ -116,13 +116,13 @@ public class EmployerDAO {
             throw new RuntimeException(e);
         }
     }
-    public void deletePost(int jobId){
-        String DELETE_JOB_SQL = "DELETE FROM jobs WHERE id = ?";
+    public void deletePost(int eid,int jobId){
+        String DELETE_JOB_SQL = "DELETE FROM jobs WHERE  employer_id=? and id=?";
         try (PreparedStatement statement = DatabaseConnection.getConnection().prepareStatement(DELETE_JOB_SQL)) {
 
 
-            statement.setInt(1, jobId);
-
+            statement.setInt(1, eid);
+            statement.setInt(2,jobId);
             int rowsDeleted = statement.executeUpdate();
             if (rowsDeleted > 0) {
                 System.out.println("Job post deleted successfully.");
@@ -133,6 +133,20 @@ public class EmployerDAO {
             e.printStackTrace();
         }
     }
+    public void updateStatus(int employerId,int applicationId,String status){
+        try {
+            Connection connection=DatabaseConnection.getConnection();
+            PreparedStatement p=connection.prepareStatement("update job_application set status=? where id=?");
+            p.setString(1,status);
+            p.setInt(2,applicationId);
+            int n= p.executeUpdate();
+            System.out.println(n);
+        }
+        catch (SQLException sql){
+            System.out.println(sql);
+        }
+    }
+
 
 }
 

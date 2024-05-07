@@ -1,5 +1,6 @@
 package org.revhire.controller;
 
+import org.example.Main;
 import org.revhire.model.Employer;
 import org.revhire.model.JobSeeker;
 import org.revhire.service.EmployerService;
@@ -8,12 +9,20 @@ import org.revhire.service.JobSeekerService;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-public class RevHireController {
 
-        private static int loggedInJobSeekerId = -1; // Store logged-in job seeker's ID
-        private static int loggedInEmployerId = -1; // Store logged-in employer's ID
+import org.revhire.util.CredentialsValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+public class RevHireController {
+    private static final Logger logger = LoggerFactory.getLogger(RevHireController.class);
+
+        private static int loggedInJobSeekerId = -1;
+        private static int loggedInEmployerId = -1;
 
         public static void main(String[] args) {
+            logger.info("This is an informational message as application started");
              Scanner scanner=new Scanner(System.in);
             JobSeekerController jobSeekerController = new JobSeekerController();
             EmployerController employerController = new EmployerController();
@@ -58,23 +67,27 @@ public class RevHireController {
             }
         }
 
-        // Handle job seeker login
+
         private static void jobSeekerLogin(JobSeekerController jobSeekerController) {
+            logger.info("jobseeker logging in");
             Scanner scanner = new Scanner(System.in);
             System.out.print("Enter job seeker username: ");
             String username = scanner.nextLine();
 
+
             System.out.print("Enter password: ");
             String password = scanner.nextLine();
 
-            // Authenticate job seeker
+
+
             JobSeekerService jobSeekerService = new JobSeekerService();
             try {
                 JobSeeker jobSeeker = jobSeekerService.getJobSeekerByUsername(username);
                 System.out.println("password : "+jobSeeker.getPassword());
                 if (jobSeeker != null && jobSeeker.getPassword().equals(password)) {
                     System.out.println("Job Seeker Login Successful.");
-                    loggedInJobSeekerId = jobSeeker.getId(); // Store the logged-in job seeker's ID
+
+                    loggedInJobSeekerId = jobSeeker.getId();
                     jobSeekerController.showMenu(loggedInJobSeekerId);
                 } else {
                     System.out.println("Invalid job seeker credentials.");
@@ -84,21 +97,24 @@ public class RevHireController {
             }
         }
 
-        // Handle employer login
+
         private static void employerLogin(EmployerController employerController) {
             Scanner scanner = new Scanner(System.in);
             System.out.print("Enter employer username: ");
             String username = scanner.nextLine();
 
+
             System.out.print("Enter password: ");
             String password = scanner.nextLine();
 
-            // Authenticate employer
+
+
             EmployerService employerService = new EmployerService();
             try {
                 Employer employer = employerService.getEmployerByUsername(username);
 
                 if (employer != null && employer.getPassword().equals(password)) {
+                    logger.info("Employer logged in");
                     System.out.println("Employer Login Successful.");
                     loggedInEmployerId = employer.getId();
                     employerController.showMenu(loggedInEmployerId);
@@ -108,6 +124,7 @@ public class RevHireController {
             } catch (SQLException e) {
                 System.out.println("Error during employer login: " + e.getMessage());
             }
+
         }
     }
 

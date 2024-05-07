@@ -1,12 +1,11 @@
 package org.revhire.service;
 
 import org.revhire.dao.JobSeekerDAO;
-import org.revhire.model.Experience;
-import org.revhire.model.Job;
-import org.revhire.model.JobSeeker;
+import org.revhire.model.*;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class JobSeekerService {
     private JobSeekerDAO jobSeekerDAO = new JobSeekerDAO();
@@ -18,11 +17,9 @@ public class JobSeekerService {
     public void addResume(int jobSeekerId, String resume) throws SQLException {
         jobSeekerDAO.addResume(jobSeekerId, resume);
     }
-    public List<Job> applyJobs(int jobId) throws  SQLException{
-        return jobSeekerDAO.applyJobs(jobId);
-
+    public void applyJob(JobAppication jobAppication){
+        jobSeekerDAO.jobApply(jobAppication);
     }
-
     public JobSeeker getJobSeekerByUsername(String username) throws SQLException {
         return jobSeekerDAO.getJobSeekerByUsername(username);
     }
@@ -35,8 +32,22 @@ public class JobSeekerService {
         }
     }
     public List<Job>  allJobs(){
-        return null;
+        return  jobSeekerDAO.allJobs();
+    }
+    public List<Job>  searchByExperience(int exp){
+        List<Job> jobs=jobSeekerDAO.allJobs();
+        List<Job> collect = jobs.stream().filter((n) -> n.getExperience() == exp).collect(Collectors.toList());
+        return collect;
+    }
+    public List<JobSeekerViewApplication>   applicationsByJobSeekerId(int jobSeekerId){
+        return jobSeekerDAO.applicationsByJobSeekerId(jobSeekerId);
+    }
+    public void withdrawApplication(JobAppication jobAppication){
 
+        jobSeekerDAO.withdrawApllication(jobAppication);
+    }
+    public void forgotPassword(String username,String email,String password){
+        jobSeekerDAO.forgotPassword(username,email,password);
     }
 }
 
